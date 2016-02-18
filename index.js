@@ -26,6 +26,8 @@ module.exports = function(config) {
 			}
 			for (var i = 0; i < config.pools[pool].nodes.length; i++) {
 				var c = merge(true, config.global, config.pools[pool].config, config.pools[pool].nodes[i]);
+				c['_name'] = pool;	// Due to obscure implementation of pools in pg, we need to set pool name and machine index to create uniqe pools for each
+				c['_index'] = i;
 				pools[pool][i] = {
 					pool: adapter.getPool(config.driver, c),
 					paused: false,
