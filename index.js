@@ -94,38 +94,38 @@ module.exports = function(config) {
 						if (err) {
 							callback(err, conn);
 						} else {
-							conn.insert = function(table, data, cb) {
-								var fields = Object.keys(data);
-								var values = [];
-								var dataArray = [table];
-								for (var f = 0; f < fields.length; f++) {
-									dataArray.push(fields[f]);
-								}
-								var fieldPh = [];
-								var valuePh = [];
-								fields.forEach(function(field) {
-									fieldPh.push('??');
-									valuePh.push('?')
-									dataArray.push(data[field]);
-								});
-								this.query('INSERT INTO ?? (' + fieldPh.join(', ') + ') values (' + valuePh.join(', ') + ')', dataArray, cb);
-							};
-
-							conn.update = function(table, data, condition, cond_params, cb) {
-								var fields = Object.keys(data);
-								var values = [];
-								var dataArray = [table];
-								var fieldPh = [];
-								fields.forEach(function(field, f) {
-									fieldPh.push('??=?');
-									dataArray.push(fields[f]);
-									dataArray.push(data[field]);
-								});
-								cond_params.forEach(function(param) {
-									dataArray.push(param);
-								})
-								this.query('UPDATE ?? SET ' + fieldPh.join(', ') + ' WHERE ' + condition, dataArray, cb);
-							};
+							// conn.insert = function(table, data, cb) {
+							// 	var fields = Object.keys(data);
+							// 	var values = [];
+							// 	var dataArray = [table];
+							// 	for (var f = 0; f < fields.length; f++) {
+							// 		dataArray.push(fields[f]);
+							// 	}
+							// 	var fieldPh = [];
+							// 	var valuePh = [];
+							// 	fields.forEach(function(field) {
+							// 		fieldPh.push('??');
+							// 		valuePh.push('?')
+							// 		dataArray.push(data[field]);
+							// 	});
+							// 	this.query('INSERT INTO ?? (' + fieldPh.join(', ') + ') values (' + valuePh.join(', ') + ')', dataArray, cb);
+							// };
+							//
+							// conn.update = function(table, data, condition, cond_params, cb) {
+							// 	var fields = Object.keys(data);
+							// 	var values = [];
+							// 	var dataArray = [table];
+							// 	var fieldPh = [];
+							// 	fields.forEach(function(field, f) {
+							// 		fieldPh.push('??=?');
+							// 		dataArray.push(fields[f]);
+							// 		dataArray.push(data[field]);
+							// 	});
+							// 	cond_params.forEach(function(param) {
+							// 		dataArray.push(param);
+							// 	})
+							// 	this.query('UPDATE ?? SET ' + fieldPh.join(', ') + ' WHERE ' + condition, dataArray, cb);
+							// };
 							callback(err, conn);
 						}
 					});
