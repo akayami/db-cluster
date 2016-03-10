@@ -46,6 +46,7 @@ module.exports = function(cluster, config) {
 							done(err)
 						} else {
 							conn.release();
+							//console.log(result.rows);
 							if (result.count() != 1) {
 								done(new Error('Wrong result count'))
 							} else {
@@ -63,7 +64,9 @@ module.exports = function(cluster, config) {
 			try {
 				//var cluster = dbCluster(config);
 				cluster.master(function(err, conn) {
-					conn.insert('test', {name: 'test'}, function(err, result) {
+					conn.insert('test', {
+						name: 'test'
+					}, function(err, result) {
 						if (err) {
 							conn.release();
 							done(err)
@@ -72,7 +75,7 @@ module.exports = function(cluster, config) {
 							if (result.count() != 1) {
 								done(new Error('Wrong result count'))
 							} else {
-								if (result.insertId() != 1) {
+								if (result.insertId != 1) {
 									done(new Error('Wrong result count'))
 								} else {
 									done();
@@ -112,6 +115,29 @@ module.exports = function(cluster, config) {
 			} catch (e) {
 				done(e);
 			}
+		});
+
+		it('Needs to support nested table select', function(done) {
+			cluster.master(function(err, conn) {
+				conn.query(`INSERT INTO ?? (name) VALUES (?)`, ['test', 'value'], function(err, result) {
+					if (err) {
+						return done(err);
+					}
+					conn.query(`INSERT INTO ?? (name) VALUES (?)`, ['test', 'value'], function(err, result) {
+						if (err) {
+							return done(err);
+						}
+						//conn.query({sql: 'select 1 as c', nestTables: true}, ['test'], function(err, result) {
+						conn.query('select * from ?? t1 inner join test t2 on t2.name=t1.name', ['test'], function(err, result) {
+							if(result.count() == 4) {
+								done();
+							} else {
+								done(new Error('Wrong Count'));
+							}
+						})
+					})
+				})
+			})
 		});
 	})
 }
