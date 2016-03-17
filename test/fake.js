@@ -54,6 +54,9 @@ var config = {
 		}
 	}
 }
+
+var cluster = dbCluster(config);
+
 describe('Fake DB', function() {
-	require('./integration/test')(dbCluster, config);
+	require('./integration/test')(cluster, config);
 })
