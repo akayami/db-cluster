@@ -138,5 +138,50 @@ module.exports = function(cluster, config) {
 				})
 			})
 		});
+
+		it('On INSERT needs to skip a field if set to undefined', function(done) {
+			cluster.master(function(err, conn) {
+				conn.insert('test', {name: 'name', someval: null}, function(err, result) {
+					if (err) {
+						return done(err);
+					}
+					conn.query('select * from ??', ['test'], function(err, result) {
+						if(err) {
+							return done(err);
+						}
+						if(result.rows()[0].someval == null) {
+							done();
+						} else {
+							return done(new Error('Wrong value returned:' + result.rows()[0].name))
+						}
+					})
+				})
+			})
+		});
+
+		it('On UPDATE needs to set field to null if undefined', function(done) {
+			cluster.master(function(err, conn) {
+				conn.insert('test', {name: 'name', someval: 'test'}, function(err, result) {
+					if (err) {
+						return done(err);
+					}
+					conn.update('test', {someval: null}, 'id=?', [result.insertId], function(err, result) {
+						if(err) {
+							return done(err);
+						}
+						conn.query('select * from ??', ['test'], function(err, result) {
+							if(err) {
+								return done(err);
+							}
+							if(result.rows()[0].someval == null) {
+								done();
+							} else {
+								return done(new Error('Wrong value returned:' + result.rows()[0].name))
+							}
+						})
+					})
+				})
+			})
+		});
 	})
 }
