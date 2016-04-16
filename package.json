@@ -1,6 +1,6 @@
 {
   "name": "db-cluster",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Generic DB-cluster object",
   "main": "index.js",
   "scripts": {

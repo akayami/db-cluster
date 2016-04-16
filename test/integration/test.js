@@ -8,6 +8,13 @@ module.exports = function(cluster, config) {
 			try {
 				//				var cluster = dbCluster(config);
 				cluster.master(function(err, conn) {
+					if(err) {
+						return done(err);
+					}
+					done = function(cb) {
+						this.conn.release();
+						this.done();
+					}.bind({done: done, conn: conn});
 					if (err) {
 						done(err);
 					} else {
@@ -22,6 +29,13 @@ module.exports = function(cluster, config) {
 			try {
 				//var cluster = dbCluster(config);
 				cluster.master(function(err, conn) {
+					if(err) {
+						return done(err);
+					}
+					done = function(cb) {
+						this.conn.release();
+						this.done();
+					}.bind({done: done, conn: conn});
 					conn.query('SELECT 1 as count', function(err, result) {
 						if (err) {
 							conn.release();
@@ -40,6 +54,13 @@ module.exports = function(cluster, config) {
 			try {
 				//var cluster = dbCluster(config);
 				cluster.master(function(err, conn) {
+					if(err) {
+						return done(err);
+					}
+					done = function(cb) {
+						this.conn.release();
+						this.done();
+					}.bind({done: done, conn: conn});
 					conn.query('SELECT 1 as count', function(err, result) {
 						if (err) {
 							conn.release();
@@ -64,6 +85,13 @@ module.exports = function(cluster, config) {
 			try {
 				//var cluster = dbCluster(config);
 				cluster.master(function(err, conn) {
+					if(err) {
+						return done(err);
+					}
+					done = function(cb) {
+						this.conn.release();
+						this.done();
+					}.bind({done: done, conn: conn});
 					conn.insert('test', {
 						name: 'test'
 					}, function(err, result) {
@@ -93,6 +121,13 @@ module.exports = function(cluster, config) {
 			try {
 				//var cluster = dbCluster(config);
 				cluster.master(function(err, conn) {
+					if(err) {
+						return done(err);
+					}
+					done = function(cb) {
+						this.conn.release();
+						this.done();
+					}.bind({done: done, conn: conn});
 					conn.query(`INSERT INTO ?? (name) VALUES (?)`, ['test', 'test'], function(err, result) {
 						if (err) {
 							return done(err);
@@ -119,6 +154,13 @@ module.exports = function(cluster, config) {
 
 		it('Needs to support nested table select', function(done) {
 			cluster.master(function(err, conn) {
+				if(err) {
+					return done(err);
+				}
+				done = function(cb) {
+					this.conn.release();
+					this.done();
+				}.bind({done: done, conn: conn});
 				conn.query(`INSERT INTO ?? (name) VALUES (?)`, ['test', 'value'], function(err, result) {
 					if (err) {
 						return done(err);
@@ -141,6 +183,13 @@ module.exports = function(cluster, config) {
 
 		it('On INSERT needs to skip a field if set to undefined', function(done) {
 			cluster.master(function(err, conn) {
+				if(err) {
+					return done(err);
+				}
+				done = function(cb) {
+					this.conn.release();
+					this.done();
+				}.bind({done: done, conn: conn});
 				conn.insert('test', {name: 'name', someval: null}, function(err, result) {
 					if (err) {
 						return done(err);
@@ -159,8 +208,101 @@ module.exports = function(cluster, config) {
 			})
 		});
 
-		it('On UPDATE needs to set field to null if undefined', function(done) {
+		it('Undefined value needs to be skipped on update', function(done) {
 			cluster.master(function(err, conn) {
+				if(err) {
+					return done(err);
+				}
+				done = function(cb) {
+					this.conn.release();
+					this.done();
+				}.bind({done: done, conn: conn});
+				conn.insert('test', {name: 'name', someval: 'value'}, function(err, result) {
+					if (err) {
+						return done(err);
+					}
+					conn.query('select * from ??', ['test'], function(err, result) {
+						if(err) {
+							return done(err);
+						}
+						if(result.rows()[0].someval == 'value') {
+							conn.update('test', {name: 'name2', someval: undefined}, 'id=?', [1], function(err, result) {
+								if(err) {
+									return done(err);
+								} else {
+									conn.query('select * from ??', ['test'], function(err, result) {
+										if(err) {
+											done(err);
+										} else {
+											if(result.rows()[0].name == 'name2' && result.rows()[0].someval == 'value') {
+												done();
+											} else {
+												done('Values were not updated correctly')
+											}
+										}
+									})
+								}
+							})
+						} else {
+							return done(new Error('Wrong value returned:' + result.rows()[0].name))
+						}
+					})
+				})
+			})
+		});
+
+		it('Null value needs to be applied on update', function(done) {
+			cluster.master(function(err, conn) {
+				if(err) {
+					return done(err);
+				}
+				done = function(cb) {
+					this.conn.release();
+					this.done();
+				}.bind({done: done, conn: conn});
+				conn.insert('test', {name: 'name', someval: 'value'}, function(err, result) {
+					if (err) {
+						return done(err);
+					}
+					conn.query('select * from ??', ['test'], function(err, result) {
+						if(err) {
+							return done(err);
+						}
+						if(result.rows()[0].someval == 'value') {
+							conn.update('test', {name: 'name2', someval: null}, 'id=?', [1], function(err, result) {
+								if(err) {
+									return done(err);
+								} else {
+									conn.query('select * from ??', ['test'], function(err, result) {
+										if(err) {
+											done(err);
+										} else {
+											if(result.rows()[0].name == 'name2' && result.rows()[0].someval == null) {
+												done();
+											} else {
+												done('Values were not updated correctly')
+											}
+										}
+									})
+								}
+							})
+						} else {
+							return done(new Error('Wrong value returned:' + result.rows()[0].name))
+						}
+					})
+				})
+			})
+		});
+
+		it('On UPDATE needs to set field to null if value is null', function(done) {
+			cluster.master(function(err, conn) {
+				if(err) {
+					return done(err);
+				}
+				done = function(cb) {
+					this.conn.release();
+					this.done();
+				}.bind({done: done, conn: conn});
 				conn.insert('test', {name: 'name', someval: 'test'}, function(err, result) {
 					if (err) {
 						return done(err);
