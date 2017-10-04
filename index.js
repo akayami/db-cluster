@@ -24,6 +24,9 @@ module.exports = function(config) {
 				pools[pool] = {};
 				pausedNodes[pool] = {};
 			}
+			if(!config.pools[pool].nodes) {
+				config.pools[pool].nodes = [{}];
+			}
 			for (var i = 0; i < config.pools[pool].nodes.length; i++) {
 				var c = merge(true, config.global, config.pools[pool].config, config.pools[pool].nodes[i]);
 				c['_name'] = pool;	// Due to obscure implementation of pools in pg, we need to set pool name and machine index to create uniqe pools for each
@@ -42,7 +45,7 @@ module.exports = function(config) {
 						delete pausedNodes[pool][i];
 					}
 				};
-				if (config.pools[pool].config.health) {
+				if (config.pools[pool].config && config.pools[pool].config.health) {
 					config.pools[pool].config.health(pools[pool][i]);
 				}
 			}
